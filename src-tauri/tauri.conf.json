@@ -43,7 +43,7 @@
     "updater": {
       "pubkey": "CONTENT_OF_YOUR_PUBLIC_KEY_HERE",
       "endpoints": [
-        "https://github.com/Zer0Dev-exe/LauncherCustom/releases/latest/download/latest.json"
+        "https://github.com/Zer0Dev-exe/MangoArmy-Launcher/releases/latest/download/latest.json"
       ]
     }
   }
