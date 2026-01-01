@@ -2,31 +2,29 @@
   "name": "mango-army-launcher",
   "private": true,
   "version": "1.0.0",
-  "main": "index.html",
+  "main": "electron/main.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:1420 && electron .\"",
+    "build": "vite build && electron-builder"
   },
   "dependencies": {
-    "@tauri-apps/plugin-process": "2.3.1",
-    "@tauri-apps/plugin-shell": "2.3.3",
-    "@tauri-apps/plugin-updater": "2.9.0",
     "discord-rpc": "^4.0.1",
     "minecraft-launcher-core": "^3.2.2",
     "msmc": "^5.0.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
-    "@tauri-apps/api": "2.9.1",
-    "@tauri-apps/cli": "2.9.6",
     "@types/discord-rpc": "^4.0.10",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.23",
     "clsx": "^2.1.0",
+    "concurrently": "9.2.1",
+    "cross-env": "10.1.0",
+    "electron": "39.2.7",
+    "electron-builder": "26.0.12",
+    "electron-is-dev": "3.0.1",
     "framer-motion": "^11.0.8",
     "lucide-react": "^0.344.0",
     "pkg": "5.8.1",
@@ -38,6 +36,23 @@
     "tailwindcss": "^4.1.18",
     "terser": "5.44.1",
     "typescript": "^5.2.2",
-    "vite": "^5.2.2"
+    "vite": "^5.2.2",
+    "wait-on": "9.0.3"
+  },
+  "build": {
+    "appId": "com.mangoarmy.launcher",
+    "productName": "Mango Army Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist-renderer/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    }
   }
 }
