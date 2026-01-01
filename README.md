@@ -1,12 +1,12 @@
 # 🎮 Mango Army Launcher
 
-¡Bienvenido al **Mango Army Launcher**! Un launcher moderno, rápido y estético para Minecraft, desarrollado con **Tauri** y **React**, inspirado en el universo de Halo.
+¡Bienvenido al **Mango Army Launcher**! Un launcher moderno, rápido y estético para Minecraft, desarrollado con **Electron** y **React**, inspirado en el universo de Halo.
 
 ![Halo Theme](https://i.imgur.com/uVzI9mH.png)
 
 ## ✨ Características Principal
 
-- 🚀 **Alto Rendimiento:** Construido con Rust para un consumo mínimo de recursos.
+- 🚀 **Alto Rendimiento:** Optimizado para ofrecer una experiencia fluida y ligera.
 - 🎨 **Estética Halo:** Temas personalizados (Classic, Reclaimer, Covenant) con efectos visuales premium.
 - 🔐 **Autenticación segura:** Soporte completo para cuentas de **Microsoft (XSTS)** y modo offline.
 - 📦 **Multi-Motor:** Compatibilidad con **Vanilla**, **Fabric** y **Paper**.
@@ -29,8 +29,6 @@ Para que el launcher funcione correctamente en cualquier ordenador, es **OBLIGAT
 ### Requisitos Previos
 
 - [Node.js](https://nodejs.org/) (LTS recomendado)
-- [Rust](https://www.rust-lang.org/tools/install) (v1.77.2+)
-- [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (incluido en Windows 10/11)
 
 ### Desarrollo Local
 
@@ -47,20 +45,20 @@ Para que el launcher funcione correctamente en cualquier ordenador, es **OBLIGAT
 
 3. Ejecutar en modo desarrollo:
    ```bash
-   npm run tauri dev
+   npm run dev
    ```
 
 ### Compilar Ejecutable
 
 Para crear el instalador de producción:
 ```bash
-npm run tauri build
+npm run build
 ```
 
 ## 🛠️ Estructura del Proyecto
 
 - `src/`: Interfaz de usuario construida con React, Tailwind y Framer Motion.
-- `src-tauri/`: Lógica de backend en Rust (gestión de archivos, ejecución de Java, APIs).
+- `electron/`: Proceso principal de Electron (gestión de ventanas, sistema de archivos, ejecución de Java).
 - `sidecar/`: Binarios y scripts auxiliares para el lanzamiento del juego.
 
 ## 🛰️ Sistema de Actualizaciones
