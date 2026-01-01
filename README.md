@@ -13,6 +13,17 @@
 - 🔄 **Auto-Actualizable:** Sistema integrado que detecta y descarga nuevas versiones desde GitHub automáticamente.
 - 🛠️ **Gestión de Perfiles:** Crea y personaliza múltiples perfiles con diferentes versiones y motores.
 
+## 📋 Requisitos para Jugar (IMPORTANTE)
+
+Para que el launcher funcione correctamente en cualquier ordenador, es **OBLIGATORIO** tener instalado lo siguiente:
+
+1.  **Java 21 (Oracle JDK)**: Necesario para arrancar el juego.
+    *   📥 **Descargar aquí:** [Oracle Java 21 (Windows x64 Installer)](https://www.oracle.com/java/technologies/downloads/#java21)
+    *   *Nota: Asegúrate de descargar la versión "x64 Installer" para Windows.*
+
+2.  **Visual C++ Redistributable**: Necesario si la aplicación no abre.
+    *   📥 Descargar: [Microsoft Visual C++](https://learn.microsoft.com/es-es/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+
 ## 🚀 Instalación y Uso
 
 ### Requisitos Previos
