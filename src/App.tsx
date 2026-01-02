@@ -71,6 +71,11 @@ function App() {
     const [launchDetail, setLaunchDetail] = useState('')
     const [installPath, setInstallPath] = useState('Checking...')
     const [isMaximized, setIsMaximized] = useState(false)
+    const [updateAvailable, setUpdateAvailable] = useState(false)
+    const [updateVersion, setUpdateVersion] = useState('')
+    const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false)
+    const [updateDownloadProgress, setUpdateDownloadProgress] = useState(0)
+    const [updateReady, setUpdateReady] = useState(false)
 
     // Sistema de notificaciones
     const showNotification = (type: 'error' | 'success' | 'info', message: string) => {
@@ -176,6 +181,23 @@ function App() {
             loadInstalledVersions();
         })
 
+        // Update event listeners
+        const unlistenUpdateAvailable = window.electron.on('update-available', (data: any) => {
+            setUpdateAvailable(true)
+            setUpdateVersion(data.version)
+            showNotification('info', `Nueva versión ${data.version} disponible!`)
+        })
+
+        const unlistenDownloadProgress = window.electron.on('download-progress', (data: any) => {
+            setUpdateDownloadProgress(Math.round(data.percent))
+        })
+
+        const unlistenUpdateDownloaded = window.electron.on('update-downloaded', (data: any) => {
+            setIsDownloadingUpdate(false)
+            setUpdateReady(true)
+            showNotification('success', `Actualización ${data.version} lista para instalar!`)
+        })
+
         loadInstalledVersions();
 
         return () => {
@@ -183,6 +205,9 @@ function App() {
             unlistenProgress && unlistenProgress();
             unlistenError && unlistenError();
             unlistenClosed && unlistenClosed();
+            unlistenUpdateAvailable && unlistenUpdateAvailable();
+            unlistenDownloadProgress && unlistenDownloadProgress();
+            unlistenUpdateDownloaded && unlistenUpdateDownloaded();
         }
     }, [])
 
@@ -331,6 +356,15 @@ function App() {
     const closeApp = () => window.electron.invoke('close_window')
     const minimizeApp = () => window.electron.invoke('minimize_window')
     const maximizeApp = () => window.electron.invoke('maximize_window')
+
+    const handleDownloadUpdate = async () => {
+        setIsDownloadingUpdate(true)
+        await window.electron.invoke('download-update')
+    }
+
+    const handleInstallUpdate = () => {
+        window.electron.invoke('install-update')
+    }
 
     return (
         <div className="halo-container relative overflow-hidden bg-[#020617] h-screen w-screen">
@@ -666,6 +700,97 @@ function App() {
                     ))}
                 </AnimatePresence>
             </div>
+
+            {/* Modal de actualización */}
+            <AnimatePresence>
+                {(updateAvailable || updateReady) && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-cyan-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+                        >
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                                    <Info size={24} className="text-cyan-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-cyan-400 tracking-widest">ACTUALIZACIÓN</h2>
+                                    <p className="text-white/40 text-sm">Versión {updateVersion}</p>
+                                </div>
+                            </div>
+
+                            {updateReady ? (
+                                <>
+                                    <p className="text-white/70 mb-6">
+                                        La actualización está lista. El launcher se reiniciará para instalarla.
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={handleInstallUpdate}
+                                            className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase text-sm px-4 py-3 rounded-lg transition-all"
+                                        >
+                                            Instalar ahora
+                                        </button>
+                                        <button
+                                            onClick={() => setUpdateReady(false)}
+                                            className="flex-1 bg-white/10 hover:bg-white/20 text-white/80 font-black uppercase text-sm px-4 py-3 rounded-lg transition-all"
+                                        >
+                                            Más tarde
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-white/70 mb-6">
+                                        Hay una nueva versión disponible. ¿Deseas descargarla ahora?
+                                    </p>
+
+                                    {isDownloadingUpdate && (
+                                        <div className="mb-6">
+                                            <div className="flex justify-between text-xs text-cyan-400 mb-2">
+                                                <span>Descargando...</span>
+                                                <span>{updateDownloadProgress}%</span>
+                                            </div>
+                                            <div className="h-2 bg-black/60 rounded overflow-hidden">
+                                                <motion.div
+                                                    className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${updateDownloadProgress}%` }}
+                                                    transition={{ duration: 0.3 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={handleDownloadUpdate}
+                                            disabled={isDownloadingUpdate}
+                                            className="flex-1 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/30 disabled:cursor-not-allowed text-white font-black uppercase text-sm px-4 py-3 rounded-lg transition-all"
+                                        >
+                                            {isDownloadingUpdate ? 'Descargando...' : 'Descargar'}
+                                        </button>
+                                        <button
+                                            onClick={() => setUpdateAvailable(false)}
+                                            disabled={isDownloadingUpdate}
+                                            className="flex-1 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white/80 font-black uppercase text-sm px-4 py-3 rounded-lg transition-all"
+                                        >
+                                            Ahora no
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

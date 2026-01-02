@@ -5,6 +5,11 @@ const { Client } = require('minecraft-launcher-core');
 const { Auth } = require('msmc');
 const fs = require('fs');
 const os = require('os');
+const { autoUpdater } = require('electron-updater');
+
+// Configure auto-updater
+autoUpdater.autoDownload = false; // Don't auto-download, ask user first
+autoUpdater.autoInstallOnAppQuit = true;
 
 // Initialize Launcher
 const launcher = new Client();
@@ -44,6 +49,13 @@ function createWindow() {
 
 app.whenReady().then(() => {
     createWindow();
+
+    // Check for updates (only in production)
+    if (!isDev) {
+        setTimeout(() => {
+            autoUpdater.checkForUpdates();
+        }, 3000); // Wait 3 seconds after app starts
+    }
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -181,11 +193,25 @@ ipcMain.handle('launch_minecraft', async (event, { options }) => {
 
     const onClose = (code) => {
         console.log(`[MC] Process exited with code ${code}`);
+
+        // Clean up listeners to prevent memory leaks and duplicate events
+        launcher.removeListener('data', onData);
+        launcher.removeListener('progress', onProgress);
+        launcher.removeListener('close', onClose);
+        launcher.removeListener('debug', onData);
+
         mainWindow?.webContents.send('game-closed', code);
+
         if (code !== 0) {
             mainWindow?.webContents.send('launch-error', { message: `Código de error ${code}. Verifica logs (Ctrl+Shift+I)` });
         }
     };
+
+    // Remove any existing listeners before adding new ones
+    launcher.removeAllListeners('data');
+    launcher.removeAllListeners('progress');
+    launcher.removeAllListeners('close');
+    launcher.removeAllListeners('debug');
 
     launcher.on('data', onData);
     launcher.on('progress', onProgress);
@@ -197,6 +223,11 @@ ipcMain.handle('launch_minecraft', async (event, { options }) => {
         return { success: true };
     } catch (e) {
         console.error("Launch error:", e);
+        // Clean up listeners on error too
+        launcher.removeListener('data', onData);
+        launcher.removeListener('progress', onProgress);
+        launcher.removeListener('close', onClose);
+        launcher.removeListener('debug', onData);
         return { success: false, error: e.message };
     }
 });
@@ -204,4 +235,57 @@ ipcMain.handle('launch_minecraft', async (event, { options }) => {
 // Open External
 ipcMain.handle('open_external', (event, url) => {
     shell.openExternal(url);
+});
+
+// ==========================================
+// AUTO-UPDATER EVENT HANDLERS
+// ==========================================
+
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for updates...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version);
+    mainWindow?.webContents.send('update-available', {
+        version: info.version,
+        releaseDate: info.releaseDate
+    });
+});
+
+autoUpdater.on('update-not-available', () => {
+    console.log('No updates available');
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow?.webContents.send('download-progress', {
+        percent: progressObj.percent,
+        transferred: progressObj.transferred,
+        total: progressObj.total
+    });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info.version);
+    mainWindow?.webContents.send('update-downloaded', {
+        version: info.version
+    });
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('Update error:', err);
+});
+
+// IPC Handlers for updates
+ipcMain.handle('download-update', async () => {
+    try {
+        await autoUpdater.downloadUpdate();
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
+ipcMain.handle('install-update', () => {
+    autoUpdater.quitAndInstall(false, true);
 });
