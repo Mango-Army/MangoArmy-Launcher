@@ -88,6 +88,10 @@ ipcMain.handle('get_app_data_dir', () => {
     return appData;
 });
 
+ipcMain.handle('get_app_version', () => {
+    return app.getVersion();
+});
+
 ipcMain.handle('get_installed_versions', async () => {
     const mcPath = path.join(process.env.APPDATA || os.homedir(), '.mango_launcher', 'versions');
     if (!fs.existsSync(mcPath)) return [];
@@ -243,6 +247,7 @@ ipcMain.handle('open_external', (event, url) => {
 
 autoUpdater.on('checking-for-update', () => {
     console.log('Checking for updates...');
+    mainWindow?.webContents.send('update-status', 'Buscando actualizaciones...');
 });
 
 autoUpdater.on('update-available', (info) => {
@@ -255,6 +260,7 @@ autoUpdater.on('update-available', (info) => {
 
 autoUpdater.on('update-not-available', () => {
     console.log('No updates available');
+    mainWindow?.webContents.send('update-status', 'No hay actualizaciones disponibles');
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
@@ -274,6 +280,7 @@ autoUpdater.on('update-downloaded', (info) => {
 
 autoUpdater.on('error', (err) => {
     console.error('Update error:', err);
+    mainWindow?.webContents.send('update-status', `Error: ${err.message || err}`);
 });
 
 // IPC Handlers for updates

@@ -76,6 +76,7 @@ function App() {
     const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false)
     const [updateDownloadProgress, setUpdateDownloadProgress] = useState(0)
     const [updateReady, setUpdateReady] = useState(false)
+    const [appVersion, setAppVersion] = useState('...')
 
     // Sistema de notificaciones
     const showNotification = (type: 'error' | 'success' | 'info', message: string) => {
@@ -123,6 +124,10 @@ function App() {
         const initDir = async () => {
             const dir = await window.electron.invoke('get_app_data_dir') as string;
             setInstallPath(dir + '/minecraft');
+
+            // Get app version
+            const version = await window.electron.invoke('get_app_version') as string;
+            setAppVersion(version);
         }
         initDir();
 
@@ -198,6 +203,10 @@ function App() {
             showNotification('success', `Actualización ${data.version} lista para instalar!`)
         })
 
+        const unlistenUpdateStatus = window.electron.on('update-status', (message: string) => {
+            console.log('[Auto-Updater]', message)
+        })
+
         loadInstalledVersions();
 
         return () => {
@@ -208,6 +217,7 @@ function App() {
             unlistenUpdateAvailable && unlistenUpdateAvailable();
             unlistenDownloadProgress && unlistenDownloadProgress();
             unlistenUpdateDownloaded && unlistenUpdateDownloaded();
+            unlistenUpdateStatus && unlistenUpdateStatus();
         }
     }, [])
 
@@ -375,7 +385,7 @@ function App() {
             {/* Header with Drag Region */}
             <header className="halo-header z-20 border-b border-white/10 backdrop-blur-xl bg-black/40 h-12 flex" style={{ WebkitAppRegion: 'drag' } as any}>
                 <div className="flex items-center gap-4 flex-1">
-                    <span className="text-[12px] font-black tracking-[0.4em] text-cyan-400 uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] px-4">MANGO ARMY LAUNCHER 0.1.4</span>
+                    <span className="text-[12px] font-black tracking-[0.4em] text-cyan-400 uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] px-4">MANGO ARMY LAUNCHER {appVersion}</span>
                 </div>
                 <div className="flex items-center h-full">
                     <button onClick={minimizeApp} className="w-12 h-full hover:bg-white/10 transition-colors flex items-center justify-center group" style={{ WebkitAppRegion: 'no-drag' } as any}>
